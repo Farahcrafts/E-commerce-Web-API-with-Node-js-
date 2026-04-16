@@ -1,64 +1,196 @@
 //creer un mini server
 const express = require("express");
-const router = express();
+const router = express.Router();
 
 //importer le model product.js , {Product} is an object
 const { Product } = require("../models/product.js");
+const { Category } = require("../models/category");
+
+//
+const multer = require("multer");
+//importer mongoose
+const mongoose = require("mongoose");
+
+//
+const FILE_TYPE_MAP = {
+  "image/png": "png",
+  "image/jpeg": "jpeg",
+  "image/jpg": "jpg",
+};
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const isValid = FILE_TYPE_MAP[file.mimetype];
+    let uploadError = new Error("invalid image type");
+
+    if (isValid) {
+      uploadError = null;
+    }
+    cb(uploadError, "public/uploads");
+  },
+  filename: function (req, file, cb) {
+    const fileName = file.originalname.split(" ").join("-");
+    const extension = FILE_TYPE_MAP[file.mimetype];
+    cb(null, `${fileName}-${Date.now()}.${extension}`);
+  },
+});
+
+const uploadOptions = multer({ storage: storage });
 
 //GET METHOD
 //http://localhost:8000/api/v1/products
 
-router.get("/", async (req, res) => {
-  //bring the data from the database
-  const productList = await Product.find();
-
-  //pour attraper une erreur , si on a pas obtenu notre liste de la bdd
-  if (!productList) {
-    res.status(500).json({
-      success: false,
-      erreur: "La base de donnees n'est pas joignable",
-    });
+router.get(`/`, async (req, res) => {
+  let filter = {};
+  if (req.query.categories) {
+    filter = { category: req.query.categories.split(",") };
   }
 
-  //pas d'erreur , son status par defaut c'est 200 "OK"
+  const productList = await Product.find(filter).populate("category");
+
+  if (!productList) {
+    res.status(500).json({ success: false });
+  }
   res.send(productList);
 });
 
-//POST METHOD
-router.post("/", (req, res) => {
-  //le serveur prend le nouveau produit du front end
-  // const newProduct = req.body;
-  //le serveur retourne le produit sous forme de json grace au middleware
-  // res.send(newProduct);
+router.get(`/:id`, async (req, res) => {
+  const product = await Product.findById(req.params.id).populate("category");
 
-  const product = new Product({
+  if (!product) {
+    res.status(500).json({ success: false });
+  }
+  res.send(product);
+});
+
+router.post(`/`, uploadOptions.single("image"), async (req, res) => {
+  const category = await Category.findById(req.body.category);
+  if (!category) return res.status(400).send("Invalid Category");
+
+  const file = req.file;
+  if (!file) return res.status(400).send("No image in the request");
+
+  const fileName = file.filename;
+  const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+  let product = new Product({
     name: req.body.name,
-    image: req.body.image,
+    description: req.body.description,
+    richDescription: req.body.richDescription,
+    image: `${basePath}${fileName}`, // "http://localhost:3000/public/upload/image-2323232"
+    brand: req.body.brand,
+    price: req.body.price,
+    category: req.body.category,
     countInStock: req.body.countInStock,
+    rating: req.body.rating,
+    numReviews: req.body.numReviews,
+    isFeatured: req.body.isFeatured,
   });
 
-  //save() returns a promise , so we need .then and .catch
-  //1. const product = new Product(...) (Le Brouillon)
-  // Quand tu écris cette ligne, tu crées un simple objet JavaScript dans la mémoire de ton serveur Node.js.
-  // À ce stade précis, MongoDB ne sait absolument pas que ce produit existe. C'est juste un brouillon local qui contient le nom, l'image et la quantité que tu as reçus de Postman.
-  // 2. product.save() (L'envoi par la poste)
-  // Cette commande prend ton brouillon (product) et l'envoie à travers Internet jusqu'à ta base de données MongoDB Atlas. Comme la fonction save() prend un peu de temps pour voyager sur le réseau, elle retourne une Promise (une promesse).
-  // 3. .then((createdProduct) => ...) (Le Document Officiel)
-  // Quand MongoDB reçoit le brouillon, il l'enregistre dans la base de données. Au passage, MongoDB ajoute automatiquement des informations supplémentaires que ton brouillon n'avait pas, comme un identifiant unique (le fameux _id) et un numéro de version (__v).
-  // Ensuite, MongoDB renvoie ce document final et officiel à ton serveur Node.js.
-  // C'est exactement ce document final qui atterrit à l'intérieur des parenthèses du .then() ! Le formateur a choisi de l'appeler createdProduct pour bien signifier "ceci est le produit tel qu'il vient d'être créé dans la base de données".
-  product
-    .save()
-    .then((createdProduct) => {
-      res.status(201).json(createdProduct);
+  product = await product.save();
+
+  if (!product) return res.status(500).send("The product cannot be created");
+
+  res.send(product);
+});
+
+router.put("/:id", async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).send("Invalid Product Id");
+  }
+  const category = await Category.findById(req.body.category);
+  if (!category) return res.status(400).send("Invalid Category");
+
+  const product = await Product.findByIdAndUpdate(
+    req.params.id,
+    {
+      name: req.body.name,
+      description: req.body.description,
+      richDescription: req.body.richDescription,
+      image: req.body.image,
+      brand: req.body.brand,
+      price: req.body.price,
+      category: req.body.category,
+      countInStock: req.body.countInStock,
+      rating: req.body.rating,
+      numReviews: req.body.numReviews,
+      isFeatured: req.body.isFeatured,
+    },
+    { new: true },
+  );
+
+  if (!product) return res.status(500).send("the product cannot be updated!");
+
+  res.send(product);
+});
+
+router.delete("/:id", (req, res) => {
+  Product.findByIdAndRemove(req.params.id)
+    .then((product) => {
+      if (product) {
+        return res
+          .status(200)
+          .json({ success: true, message: "the product is deleted!" });
+      } else {
+        return res
+          .status(404)
+          .json({ success: false, message: "product not found!" });
+      }
     })
     .catch((err) => {
-      res.status(500).json({
-        error: err,
-        success: false,
-      });
+      return res.status(500).json({ success: false, error: err });
     });
 });
 
+router.get(`/get/count`, async (req, res) => {
+  const productCount = await Product.countDocuments((count) => count);
+
+  if (!productCount) {
+    res.status(500).json({ success: false });
+  }
+  res.send({
+    productCount: productCount,
+  });
+});
+
+router.get(`/get/featured/:count`, async (req, res) => {
+  const count = req.params.count ? req.params.count : 0;
+  const products = await Product.find({ isFeatured: true }).limit(+count);
+
+  if (!products) {
+    res.status(500).json({ success: false });
+  }
+  res.send(products);
+});
+
+router.put(
+  "/gallery-images/:id",
+  uploadOptions.array("images", 10),
+  async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).send("Invalid Product Id");
+    }
+    const files = req.files;
+    let imagesPaths = [];
+    const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+
+    if (files) {
+      files.map((file) => {
+        imagesPaths.push(`${basePath}${file.filename}`);
+      });
+    }
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        images: imagesPaths,
+      },
+      { new: true },
+    );
+
+    if (!product) return res.status(500).send("the gallery cannot be updated!");
+
+    res.send(product);
+  },
+);
+
 module.exports = router;
-//ici on export la variable router tout seule
