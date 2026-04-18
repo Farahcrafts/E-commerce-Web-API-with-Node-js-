@@ -13,7 +13,7 @@ router.get(`/`, async (req, res) => {
 
     //if there is no category in the db, return an error message
     if (!categoryList) {
-      res.status(500).json({ success: false });
+      return res.status(500).json({ success: false });
     }
 
     //if there are categories in the db, return them to the client
@@ -31,7 +31,7 @@ router.get("/:id", async (req, res) => {
 
     //if there is no category with the given id in the db, return an error message
     if (!category) {
-      res
+      return res
         .status(500)
         .json({ message: "The category with the given ID was not found." });
     }

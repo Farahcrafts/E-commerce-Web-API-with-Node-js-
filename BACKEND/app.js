@@ -12,24 +12,22 @@ app.use(morgan("tiny"));
 
 //middlewares
 //body parser pour parser les données envoyées par le client dans le corps de la requête HTTP, et les rendre accessibles dans req.body
-const bodyParser = require("body-parser");
-app.use(bodyParser.json());
+app.use(express.json());
 
 //cors pour permettre les requêtes cross-origin, c'est-à-dire les requêtes provenant de domaines différents de celui du serveur. Cela est nécessaire pour permettre à des applications front-end hébergées sur des domaines différents d'accéder à l'API.
+const cors = require("cors");
 app.use(cors());
-app.options("*", cors());
+app.options(/.*/, cors());
 
 //jwt pour sécuriser les routes de l'API en vérifiant que les requêtes contiennent un token d'authentification valide. Le middleware authJwt va intercepter les requêtes entrantes, vérifier le token et autoriser ou refuser l'accès aux ressources protégées en fonction de la validité du token.
 const authJwt = require("./helpers/jwt.js");
-app.use(authJwt);
+app.use(authJwt());
 
 //import mongoose
 const mongoose = require("mongoose");
-const cors = require("cors");
 
 //error handler pour gérer les erreurs de manière centralisée. Si une erreur se produit dans l'une des routes ou des middlewares, elle sera capturée par ce gestionnaire d'erreurs, qui pourra ensuite formater la réponse d'erreur de manière cohérente et informative pour le client.
 const errorHandler = require("./helpers/error-handler.js");
-app.use(errorHandler);
 
 // Pour toutes les requêtes (URL) qui commencent par /api/v1/products,
 //  redirige-les vers le mini-programme productsRouter pour qu'il s'en occupe.
@@ -48,21 +46,21 @@ app.use(`${api}/orders`, ordersRouter);
 
 //users router
 const usersRouter = require("./routers/users.js");
-const authJwt = require("./helpers/jwt.js");
 app.use(`${api}/users`, usersRouter);
+//error handler
+app.use(errorHandler);
 
 //we add connection to the database before starting the server
 mongoose
   .connect(process.env.CONNECTION_STRING)
   .then(() => {
     console.log("Database connection is ready...");
+    //start the server
+    app.listen(3000, () => {
+      console.log(api);
+      console.log("server is running http://localhost:3000");
+    });
   })
   .catch((err) => {
     console.log(err);
   });
-
-//start the server
-app.listen(8000, () => {
-  console.log(api);
-  console.log("server is running http://localhost:8000");
-});

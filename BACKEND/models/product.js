@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 //create a schema
 const productSchema = mongoose.Schema({
   name: { type: String, required: true },
-  desciption: { type: String, required: true },
+  description: { type: String, required: true },
   richDescription: { type: String, default: "" },
   image: { type: String, required: true },
   images: [{ type: String }],
