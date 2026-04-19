@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+
 import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import api from "../../lib/api";
 import ProductCard from "../../components/ProductCard";
@@ -27,8 +28,10 @@ export default function Shop() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("all");
   const [sort, setSort] = useState("newest");
+// eslint-disable-next-line no-unused-vars
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+// eslint-disable-next-line no-unused-vars
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {

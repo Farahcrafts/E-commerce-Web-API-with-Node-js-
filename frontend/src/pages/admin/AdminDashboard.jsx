@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+
 import { Link } from "react-router-dom";
 import { ShoppingBag, Users, Package, DollarSign, TrendingUp, ChevronRight } from "lucide-react";
 import api from "../../lib/api";
 
+// eslint-disable-next-line no-unused-vars
 function StatCard({ icon: Icon, label, value, sub, delay }) {
   return (
     <motion.div
@@ -89,6 +91,7 @@ export default function AdminDashboard() {
           {[
             { label: "Manage Products", sub: "Add, edit or remove products", href: "/admin/products", icon: Package },
             { label: "Manage Orders", sub: "View and update order statuses", href: "/admin/orders", icon: ShoppingBag },
+// eslint-disable-next-line no-unused-vars
           ].map(({ label, sub, href, icon: Icon }) => (
             <Link
               key={href}

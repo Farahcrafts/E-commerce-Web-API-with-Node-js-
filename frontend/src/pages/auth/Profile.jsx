@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+
 import { User, Package, LogOut, ChevronRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +64,7 @@ export default function Profile() {
           {[
             { id: "orders", label: "My Orders", icon: Package },
             { id: "profile", label: "Profile Details", icon: User },
+// eslint-disable-next-line no-unused-vars
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}

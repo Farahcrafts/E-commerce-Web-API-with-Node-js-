@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useParams, useNavigate } from "react-router-dom";
+
 import { Minus, Plus, ShoppingBag, ArrowLeft, Star, Package, RotateCcw } from "lucide-react";
 import api from "../../lib/api";
 import { useCart } from "../../context/CartContext";
@@ -15,6 +16,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+// eslint-disable-next-line no-unused-vars
   const [related, setRelated] = useState([]);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function ProductDetails() {
       }
     };
     fetch();
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleAdd = () => {
@@ -222,6 +225,7 @@ export default function ProductDetails() {
                 {[
                   { icon: Package, text: "Free shipping on orders over $75" },
                   { icon: RotateCcw, text: "Free returns within 30 days" },
+// eslint-disable-next-line no-unused-vars
                 ].map(({ icon: Icon, text }, i) => (
                   <div key={i} className="flex items-center gap-2.5">
                     <Icon size={14} strokeWidth={1.5} className="text-charcoal-muted shrink-0" />

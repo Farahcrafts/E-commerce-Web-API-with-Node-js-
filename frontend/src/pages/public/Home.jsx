@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion,  useInView } from "framer-motion";
 import axios from "axios";
 import { ArrowRight, ShoppingBag, Star } from "lucide-react";
 
@@ -185,8 +185,11 @@ function SectionHeading({ eyebrow, title, subtitle }) {
   );
 }
 
+import { useCart } from "../../context/CartContext";
+
 // ─── main page ───────────────────────────────────────────────────────────────
-export default function Home({ onAddToCart }) {
+export default function Home() {
+  const { addItem } = useCart();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -463,7 +466,7 @@ export default function Home({ onAddToCart }) {
               <ProductCard
                 key={product._id}
                 product={product}
-                onAddToCart={onAddToCart}
+                onAddToCart={(p) => addItem(p, 1)}
               />
             ))
           ) : (

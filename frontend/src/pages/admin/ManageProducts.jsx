@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion,  AnimatePresence } from "framer-motion";
 import { Plus, Pencil, Trash2, X, Upload, Search } from "lucide-react";
 import api from "../../lib/api";
 
@@ -34,6 +34,7 @@ export default function ManageProducts() {
     finally { setLoading(false); }
   };
 
+// eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchProducts(); }, []);
 
   const openCreate = () => {

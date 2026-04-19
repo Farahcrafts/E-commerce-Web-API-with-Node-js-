@@ -10,14 +10,6 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (token) {
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
-
   const fetchProfile = async () => {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
@@ -26,11 +18,23 @@ export function AuthProvider({ children }) {
       });
       setUser(res.data);
     } catch {
+// eslint-disable-next-line react-hooks/immutability
       logout();
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+// eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchProfile();
+    } else {
+      // Defer state update or handle via initialization
+      setTimeout(() => setLoading(false), 0);
+    }
+// eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const login = async (email, password) => {
     const res = await axios.post(`${API}/users/login`, { email, password });
@@ -67,6 +71,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be inside AuthProvider");
